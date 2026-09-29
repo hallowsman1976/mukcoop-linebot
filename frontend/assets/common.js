@@ -63,7 +63,14 @@ async function api(action, params) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // เลี่ยง CORS preflight ที่ Apps Script ไม่รองรับ
     body: JSON.stringify({ action, idToken: liff.getIDToken(), params: params || {} })
   });
-  const out = await res.json();
+  const text = await res.text();
+  let out;
+  try { out = JSON.parse(text); }
+  catch (e) {
+    // Apps Script ตอบเป็นหน้า HTML (เช่น หน้า error ของ Google) แทน JSON — แสดงหัวข้อของหน้านั้นเพื่อช่วยไล่สาเหตุ
+    const m = /<title>([^<]*)<\/title>/i.exec(text);
+    throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ (' + res.status + ')' + (m ? ': ' + m[1].trim() : '') + ' [' + action + ']');
+  }
   if (!out.ok) {
     if (out.code === 'AUTH') { liff.logout(); liff.login({ redirectUri: window.location.href }); }
     throw new Error(out.message || 'เกิดข้อผิดพลาด');
