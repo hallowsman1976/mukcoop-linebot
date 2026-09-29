@@ -1,0 +1,9 @@
+node_modules/
+.clasp.json
+.clasprc.json
+.env
+import/
+tools/*.csv
+.agents/
+.claude/
+skills-lock.json
